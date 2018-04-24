@@ -92,38 +92,3 @@ def wdmatrix( l,                # polar l
 
     #
     return D
-
-# Given an array of complex valued waveform timeseries, and the related mutipolar spherical indeces, as well as the desired rotation angles, rotate the waveform set
-def mprotate( mpdict,           # dictionary or (l,m): complex__time_series_multipole
-              angles,           # three euler angles in order alpha beta gamma
-              verbose = None ): # Let the people know
-
-    # Import useful things
-    from numpy import array, arange, dot
-
-    # Validate the mpdict input
-
-    # Build list of l values; roations will be allied one l at a time
-    lrange = sorted( list(set( [ lm[0] for lm in mpdict.keys() ] )) )
-
-    # A basic check for angles input, more needed
-    if len(angles) != 3:
-        msg = 'angles input must be three floats in alpha beta gamma order'
-        error(msg,'mprotate')
-    for ang in angles:
-        if not isinstance(ang,(float,int)):
-            msg = 'angles must be float or int'
-            error(msg,'mprotate')
-
-    # For each l value
-    for l in lrange:
-
-        # Calculate the m range to use
-        mrange = sorted( [ lm[-1] for lm in mpdict.keys() if l==lm[0] ] )
-
-        # Calculate the related d matrix
-        alpha,beta,gamma = angles
-        D = wdmatrix( l, mrange, alpha, beta, gamma )
-
-        # For all time coordinates (the related indeces)
-        tindmap = range( len( mpdict[ mpdict ] ) )
