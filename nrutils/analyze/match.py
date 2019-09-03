@@ -76,7 +76,7 @@ class match:
         # Define helper function for high level match
         def match_helper(phi_template):
             #
-            if verbose: print '.',
+            if verbose: print('.', end=' ')
             # Get the waveform array at the desired template oribtal phase
             current_template_wfarr = template_wfarr_orbphi_fun( phi_template )
             # Create the related match object
@@ -95,7 +95,7 @@ class match:
 
         # Map template orbital phase values to match
         phi_template_range = linspace(0,2*pi,N_template_phi)
-        match_list = abs( array( map( match_helper, phi_template_range ) ) )
+        match_list = abs( array( list(map( match_helper, phi_template_range )) ) )
 
         # Interpolate match over phi_template to estimate maximum
         # intrp_max lives in the "positive" repository
@@ -214,7 +214,7 @@ class match:
 
             #
             if verbose:
-                print '>> working ',
+                print('>> working ', end=' ')
                 flush()
 
             '''Loop over SIGNAL ORBITAL PHASE'''
@@ -226,7 +226,7 @@ class match:
 
                 '''Loop over SIGNAL POLARIZATION'''
                 for k,psi_signal in enumerate(psi_signal_range):
-                    print '.',
+                    print('.', end=' ')
                     flush()
                     # Apply the signal poliarzation to the current object
                     this.apply( signal_polarization = psi_signal )
@@ -264,7 +264,7 @@ class match:
 
                 # For all signal polarization values
                 if verbose:
-                    print ',',
+                    print(',', end=' ')
                     flush()
 
                 #
@@ -279,7 +279,7 @@ class match:
             # Calculate moments for this inclination
             #------------------------#
             if verbose:
-                print ' done.'
+                print(' done.')
                 flush()
             # convert to arrays to help with math
             match_list,optsnr_list = array(match_list),array(optsnr_list)
@@ -301,16 +301,16 @@ class match:
             if hm_vs_quad:
                 quadrupole_snr_avg_match.append( average( quadrupole_match_list, weights=optsnr_list**3 ) )
             #
-            print '>>  min_match \t = \t %f' % min_match[-1]
-            print '>>  avg_match \t = \t %f' % avg_match[-1]
-            print 'snr_avg_match \t = \t %f' % snr_avg_match[-1]
-            print '>>  max_match \t = \t %f' % max_match[-1]
+            print('>>  min_match \t = \t %f' % min_match[-1])
+            print('>>  avg_match \t = \t %f' % avg_match[-1])
+            print('snr_avg_match \t = \t %f' % snr_avg_match[-1])
+            print('>>  max_match \t = \t %f' % max_match[-1])
             if hm_vs_quad:
-                print '##  quadrupole_min_match \t = \t %f' % quadrupole_min_match[-1]
-                print '##  quadrupole_avg_match \t = \t %f' % quadrupole_avg_match[-1]
-                print 'quadrupole_snr_avg_match \t = \t %f' % quadrupole_snr_avg_match[-1]
-                print '##  quadrupole_max_match \t = \t %f' % quadrupole_max_match[-1]
-            print '--'*20
+                print('##  quadrupole_min_match \t = \t %f' % quadrupole_min_match[-1])
+                print('##  quadrupole_avg_match \t = \t %f' % quadrupole_avg_match[-1])
+                print('quadrupole_snr_avg_match \t = \t %f' % quadrupole_snr_avg_match[-1])
+                print('##  quadrupole_max_match \t = \t %f' % quadrupole_max_match[-1])
+            print('--'*20)
             flush()
 
         #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-#
@@ -432,7 +432,7 @@ class match:
 
         # Estimate the maximum match
         roots = spline(template_polarization_range,match_list,k=4).derivative().roots()
-        max_matches = map( matchfun, roots )
+        max_matches = list(map( matchfun, roots ))
         best_polarization = template_polarization_range[argmax( max_matches )]
         best_match = max( max_matches )
 
@@ -588,10 +588,10 @@ class match:
         this.template['xnorm'] = this.calc_norm( this.template['x'] )
         #
         if (this.template['+norm']==0) or (this.template['xnorm']==0) :
-            print sum(abs(this.template['+']))
-            print sum(abs(this.template['x']))
-            print 'template +norma = %f'%this.template['+norm']
-            print 'template xnorma = %f'%this.template['xnorm']
+            print(sum(abs(this.template['+'])))
+            print(sum(abs(this.template['x'])))
+            print('template +norma = %f'%this.template['+norm'])
+            print('template xnorma = %f'%this.template['xnorm'])
             error('Neither + nor x of template can be zero for all frequencies.')
         #
         normalized_template_plus  = this.template['+']/this.template['+norm']
@@ -712,7 +712,7 @@ class match:
         b = a if b is None else b
         #
         if (this.psd.shape[0] != b.shape[0]) or (this.psd.shape[0] != a.shape[0]):
-            print this.psd.shape, a.shape, b.shape
+            print(this.psd.shape, a.shape, b.shape)
             error('vector shapes not compatible with this objects psd shape')
         #
         integrand = ( abs(a)**2 if b is a else a.conj()*b ) / this.psd
@@ -765,7 +765,7 @@ class match:
         this.__set_psd_fun__()
         # NOTE that we input the absolute value of frequencies per the definition of Sn
         from numpy import array
-        this.psd = array( map(this.__psd_fun__,abs(this.f)) )
+        this.psd = array( list(map(this.__psd_fun__,abs(this.f))) )
         # this.__psd_fun__( abs(this.f) )
 
 
@@ -1104,7 +1104,7 @@ class match:
 
         # Freqs must have same length
         if len(signal_f) != len(template_f):
-            print len(signal_f),len(template_f)
+            print(len(signal_f),len(template_f))
             error( 'Frequency columns of waveform arrays are not equal in length. You may wish to interpolate to ensure a common frequency domain space. Please make sure that masking is handled consistently between inputs and possible outputs of recompoase functions (if relevant).' )
 
         # Freqs must have same values

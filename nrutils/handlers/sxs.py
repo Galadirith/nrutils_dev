@@ -86,7 +86,7 @@ def learn_metadata( metadata_file_location ):
     #
     B = L1 + L2
     if norm( L[k:] - B[k:] ) > 1e-6 :
-        print '>> norm( L[k:] - B[k:] ) = %f > 1e-6' % (norm( L[k:] - B[k:] ))
+        print('>> norm( L[k:] - B[k:] ) = %f > 1e-6' % (norm( L[k:] - B[k:] )))
         msg = '>> Inconsistent handling of initial momenta. Please scrutinize.'
         raise ValueError(msg)
 

@@ -149,7 +149,7 @@ class make_pnnr_hybrid(gwylm):
         if __plot__:
             t0_space = linspace(t0-200*dt,t0+200*dt,21)
             figure()
-            plot( t0_space, map(work,t0_space) )
+            plot( t0_space, list(map(work,t0_space)) )
             xlim(lim(t0_space))
             axvline(t0,color='r',ls='--')
             axvline(t0_guess,color='k',ls='-',alpha=0.3)
@@ -188,7 +188,7 @@ class make_pnnr_hybrid(gwylm):
         # Store optimals
         alert('Storing optimal params to this.optimal_hybrid_params',verbose=this.verbose)
         this.optimal_hybrid_params = { 't0':t0, 'dt':dt, 'k0':k0, 'phi0_22':phi0_22, 'mask':mask, 'T1':T1, 'T2':T2, 'hybrid_cycles':N }
-        if this.verbose: print this.optimal_hybrid_params
+        if this.verbose: print(this.optimal_hybrid_params)
 
 
     # Create an instance of the PN class
@@ -212,10 +212,10 @@ class make_pnnr_hybrid(gwylm):
 
         #
         alert('Determining multipole to consider for hybridization by taking the set intersection of those present in NR and PN data.',verbose=this.verbose)
-        this.lmlist = sorted( list(set( this.gwylmo.lm.keys() ).intersection( pno.pn_gwylmo.lm.keys() )) )
+        this.lmlist = sorted( list(set( this.gwylmo.lm.keys() ).intersection( list(pno.pn_gwylmo.lm.keys()) )) )
         if this.verbose:
             alert('Hybrid waveforms will be constructed for the following multipoles:')
-            print this.lmlist
+            print(this.lmlist)
 
         #
         return None

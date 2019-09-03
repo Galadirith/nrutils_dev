@@ -393,7 +393,7 @@ def recompose_wfarrs( wfarr_dict, theta, phi ):
                 error( 'invalid multipole eigenvalue found: %s'%[v] )
         # key values must be ndarray
         if not isinstance(wfarr_dict[k],ndarray):
-            print wfarr_dict[k].__class__
+            print(wfarr_dict[k].__class__)
             error('key values must be ndarray')
 
     # Number of samples
@@ -418,7 +418,7 @@ def recompose_wfarrs( wfarr_dict, theta, phi ):
         return Z
 
     # Extract time/frequency domain for output
-    domain = wfarr_dict[ wfarr_dict.keys()[0] ][:,0]
+    domain = wfarr_dict[ list(wfarr_dict.keys())[0] ][:,0]
     # Recompose plus and cross columns separately
     recomposed_plus = __recomp__(1)
     recomposed_cross = __recomp__(2)
@@ -438,7 +438,7 @@ def recompose_complex_waveforms( y_dict, theta, phi ):
     from numpy import ndarray,zeros,dot,array
 
     # Number of samples
-    n_samples = y_dict[y_dict.keys()[0]].shape[0]
+    n_samples = y_dict[list(y_dict.keys())[0]].shape[0]
     # Number of multipoles given
     n_multipoles = len( y_dict )
 
@@ -597,7 +597,7 @@ def alphamax(_gwylmo,dphi,plt=False,verbose=False,n=13):
         plot( dpsis, aspl, label=dpsi )
         plot( dpsis[argmax(aspl)], aspl[argmax(aspl)], 'or', mfc='none' )
         xlabel(r'$\psi$')
-    if verbose: print dpsi_opt,action([dphi,dpsi_opt])
+    if verbose: print(dpsi_opt,action([dphi,dpsi_opt]))
     return [ dpsi_opt, action([dphi,dpsi_opt])    ]
 
 def betamax(_gwylmo,n=10,plt=False,opt=True,verbose=False):
@@ -645,9 +645,9 @@ def betamax(_gwylmo,n=10,plt=False,opt=True,verbose=False):
         title(val_max)
 
     if verbose:
-        print 'dphi_opt = ' + str(dphi_opt)
-        print 'dpsi_opt = ' + str(dpsi_opt)
-        print 'val_max = ' + str(val_max)
+        print('dphi_opt = ' + str(dphi_opt))
+        print('dpsi_opt = ' + str(dpsi_opt))
+        print('val_max = ' + str(val_max))
 
     return dphi_opt,dpsi_opt
 
@@ -665,7 +665,7 @@ def betamax2(_gwylmo,n=10,plt=False,opt=True,verbose=False):
         dphi_action = lambda _dphi: action( [_dphi,dpsi] )
         dphi = minimize( dphi_action, dphi, bounds=[(0,2*pi)] ).x[0]
         done = k>n
-        print '>> ',dphi,dpsi,action([dphi,dpsi])
+        print('>> ',dphi,dpsi,action([dphi,dpsi]))
         k+=1
 
     return dphi,dpsi
@@ -876,14 +876,14 @@ def calc_Lab_tensor( multipole_dict ):
             error('You\'ve entered a multipole dictionary with separate real and imaginary parts. This must be formatted such that y[2,2]["real"] gives the real part and ...')
         #
         x = {}
-        lmlist = y.keys()
+        lmlist = list(y.keys())
         for l,m in lmlist:
             x[l,m]        = y[l,m]['real'] + 1j*y[l,m]['imag']
             x[l,m,'conj'] = x[l,m].conj()
     elif isinstance( y[2,2], (float,int,complex,ndarray) ):
         #
         x = {}
-        lmlist = y.keys()
+        lmlist = list(y.keys())
         for l,m in lmlist:
             x[l,m]        = y[l,m]
             x[l,m,'conj'] = y[l,m].conj()
@@ -1146,10 +1146,10 @@ def calc_coprecessing_angles( multipole_dict,       # Dict of multipoles { ... l
     # # Enforce that the initial direction of Z is the same as the input reference orientation
     index_ref = find( domain_vals>min(abs(safe_domain_range)) )[0]
     Z_ref = Z[ index_ref ]
-    print 'len(domain_vals) = ',len(domain_vals)
-    print 'index_ref = ',index_ref
-    print 'Z_ref = ',Z_ref
-    print 'ref_orientation = ',ref_orientation
+    print('len(domain_vals) = ',len(domain_vals))
+    print('index_ref = ',index_ref)
+    print('Z_ref = ',Z_ref)
+    print('ref_orientation = ',ref_orientation)
     if Z_ref != 0:
         if sign(Z_ref) != sign( ref_orientation[-1] ):
             warning('Reference orientation and calculated data inconsistent. We will reflect.')

@@ -52,7 +52,7 @@ class __gconfig__:
             config_file_location = join(user_settings_path,basename(config_path))
             user_config_files.append(config_file_location)
             if not isfile(config_file_location):
-                if verbose: print '>> copying "%s" to "%s" to make up for missing config'%(blue(config_path),blue(config_file_location))
+                if verbose: print('>> copying "%s" to "%s" to make up for missing config'%(blue(config_path),blue(config_file_location)))
                 cp( config_path, config_file_location )
 
         # Create a smart object representation of each config
@@ -271,7 +271,7 @@ class scentry:
         this.raw_metadata = None
         if this.isvalid is True:
             #
-            if this.verbose: print '## Working: %s' % cyan(metadata_file_location)
+            if this.verbose: print('## Working: %s' % cyan(metadata_file_location))
             this.log += ' This entry\'s metadata file is valid.'
 
             # # i.e. learn the meta_data_file
@@ -290,7 +290,7 @@ class scentry:
 
         elif this.isvalid is False:
             if config_obj:
-                if this.verbose: print '## The following is '+red('invalid')+': %s' % cyan(metadata_file_location)
+                if this.verbose: print('## The following is '+red('invalid')+': %s' % cyan(metadata_file_location))
                 this.log += ' This entry\'s metadta file is invalid.'
 
     # Method to load handler module
@@ -359,7 +359,7 @@ class scentry:
         standard_metadata.eta = standard_metadata.m1*standard_metadata.m2 / ( standard_metadata.m1+standard_metadata.m2 )
 
         # Confer the required attributes to this object for ease of referencing
-        for attr in standard_metadata.__dict__.keys():
+        for attr in list(standard_metadata.__dict__.keys()):
             setattr( this, attr, standard_metadata.__dict__[attr] )
 
         # tag this entry with its inferred setname
@@ -523,7 +523,7 @@ class scentry:
 def simdir2scentry( catalog_dir, verbose = False ):
 
     # Load useful packages
-    from commands import getstatusoutput as bash
+    from subprocess import getstatusoutput as bash
     from os.path import realpath, abspath, join, splitext, basename
     from os import pardir,system,popen
     import pickle
@@ -533,6 +533,7 @@ def simdir2scentry( catalog_dir, verbose = False ):
 
     # Load all known configs
     cpath_list = glob.glob( global_settings.config_path+'*.ini' )
+
     # Warn/Error if needed
     if not cpath_list:
         msg = 'Cannot find configuration files (*.ini) in %s' % global_settings.config_path
@@ -573,7 +574,7 @@ def simdir2scentry( catalog_dir, verbose = False ):
             if entry.isvalid:
                 catalog.append( entry )
             else:
-                if verbose: print entry.log
+                if verbose: print(entry.log)
                 del entry
 
         # Break the for-loop if a valid scentry has been built
@@ -593,7 +594,7 @@ def simdir2scentry( catalog_dir, verbose = False ):
 def scbuild(keyword=None,save=True):
 
     # Load useful packages
-    from commands import getstatusoutput as bash
+    from subprocess import getstatusoutput as bash
     from os.path import realpath, abspath, join, splitext, basename
     from os import pardir,system,popen
     import pickle
@@ -605,10 +606,10 @@ def scbuild(keyword=None,save=True):
     cpath_list = glob.glob( global_settings.config_path+'*.ini' )
 
     # If a keyword is give, filter against found config files
-    if isinstance(keyword,(str,unicode)):
+    if isinstance(keyword,str):
         msg = 'Filtering ini files for \"%s\"'%cyan(keyword)
         alert(msg,'scbuild')
-        cpath_list = filter( lambda path: keyword in path, cpath_list )
+        cpath_list = [path for path in cpath_list if keyword in path]
 
     #
     if not cpath_list:
@@ -708,7 +709,7 @@ def sc_add( database_name, simulation_dir ):
     import pickle
     import glob
     from nrutils.core.nrsc import scconfig, scentry
-    from commands import getstatusoutput as bash
+    from subprocess import getstatusoutput as bash
 
     # Switch to Jonathan's short-hand
     # Targeted database to update and the location of the new simulation files
@@ -719,10 +720,10 @@ def sc_add( database_name, simulation_dir ):
     cpath_list = glob.glob( global_settings.config_path+'*.ini' )
 
     # Filter the available .ini files for the desired database
-    if isinstance(db_to_update,(str,unicode)):
+    if isinstance(db_to_update,str):
         msg = 'Filtering ini files for \"%s\"'%cyan(db_to_update)
         alert(msg)
-        cpath_list = filter( lambda path: db_to_update in path, cpath_list )
+        cpath_list = [path for path in cpath_list if db_to_update in path]
 
     #
     if not cpath_list:
@@ -901,7 +902,7 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
         catalog = []
         if verbose==2: alert('Loading catalog information from:')
         for db in dblist:
-            if verbose==2: print '>> %s' % cyan(db)
+            if verbose==2: print('>> %s' % cyan(db))
             with open( db , 'rb') as dbf:
                 catalog = catalog + pickle.load( dbf )
 
@@ -909,7 +910,7 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
     if validate_remnant is True:
         from numpy import isnan,sum
         test = lambda k: (sum(isnan( k.xf ))==0) and (isnan(k.mf)==0)
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # mass-ratio
     qtol = 1e-3
@@ -918,58 +919,58 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
         if isinstance(q,(int,float)): q = [q-qtol,q+qtol]
         # NOTE: this could use error checking
         test = lambda k: k.m1/k.m2 >= min(q) and k.m1/k.m2 <= max(q)
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # nonspinning
     if nonspinning is True:
         test = lambda k: norm(k.S1)+norm(k.S2) < tol
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # spin aligned with orbital angular momentum
     if spinaligned is True:
         test = lambda k: allclose( dot(k.S1,k.L1+k.L2) , norm(k.S1)*norm(k.L1+k.L2) , atol=tol ) and allclose( dot(k.S2,k.L1+k.L2) , norm(k.S2)*norm(k.L1+k.L2) , atol=tol ) and not allclose( norm(k.S1)+norm(k.S2), 0.0, atol=tol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # spin anti-aligned with orbital angular momentum
     if spinantialigned is True:
         test = lambda k: allclose( dot(k.S1,k.L1+k.L2) , -norm(k.S1)*norm(k.L1+k.L2) , atol=tol ) and allclose( dot(k.S2,k.L1+k.L2) , -norm(k.S2)*norm(k.L1+k.L2) , atol=tol ) and not allclose( norm(k.S1)+norm(k.S2), 0.0, atol=tol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # precessing
     if precessing is True:
         test = lambda k: not allclose( abs(dot(k.S1+k.S2,k.L1+k.L2)), norm(k.L1+k.L2)*norm(k.S1+k.S2) , atol = tol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # non-precessing, same as spinaligned & spin anti aligned
     nptol = 1e-4
     if nonprecessing is True:
         test = lambda k: allclose( abs(dot(k.S2,k.L1+k.L2)), norm(k.L1+k.L2)*norm(k.S2) , atol = nptol ) and allclose( abs(dot(k.S1,k.L1+k.L2)), norm(k.L1+k.L2)*norm(k.S1) , atol = nptol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # spins have equal magnitude
     if equalspin is True:
         test = lambda k: allclose( k.S1, k.S2, atol = tol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # spins have unequal magnitude
     if unequalspin is True:
         test = lambda k: not allclose( k.S1, k.S2, atol = tol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     #
     if antialigned is True:
         test = lambda k: allclose( dot(k.S1+k.S2,k.L1+k.L2)/(norm(k.S1+k.S2)*norm(k.L1+k.L2)), -1.0, atol = tol )
-        catalog = filter( test, catalog )
+        catalog = list(filter( test, catalog ))
 
     # Compare setname strings
     if setname is not None:
         if isinstance( setname, str ):
             setname = [setname]
-        setname = filter( lambda s: isinstance(s,str), setname )
+        setname = [s for s in setname if isinstance(s,str)]
         setname = [ k.lower() for k in setname ]
         if isinstance( setname, list ) and len(setname)>0:
             test = lambda k: k.setname.lower() in setname
-            catalog = filter( test, catalog )
+            catalog = list(filter( test, catalog ))
         else:
             msg = 'setname input must be nonempty string or list.'
             error(msg)
@@ -978,11 +979,11 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
     if notsetname is not None:
         if isinstance( notsetname, str ):
             notsetname = [notsetname]
-        notsetname = filter( lambda s: isinstance(s,str), notsetname )
+        notsetname = [s for s in notsetname if isinstance(s,str)]
         notsetname = [ k.lower() for k in notsetname ]
         if isinstance( notsetname, list ) and len(notsetname)>0:
             test = lambda k: not ( k.setname.lower() in notsetname )
-            catalog = filter( test, catalog )
+            catalog = list(filter( test, catalog ))
         else:
             msg = 'notsetname input must be nonempty string or list.'
             error(msg)
@@ -991,11 +992,11 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
     if institute is not None:
         if isinstance( institute, str ):
             institute = [institute]
-        institute = filter( lambda s: isinstance(s,str), institute )
+        institute = [s for s in institute if isinstance(s,str)]
         institute = [ k.lower() for k in institute ]
         if isinstance( institute, list ) and len(institute)>0:
             test = lambda k: k.config.institute.lower() in institute
-            catalog = filter( test, catalog )
+            catalog = list(filter( test, catalog ))
         else:
             msg = 'institute input must be nonempty string or list.'
             error(msg)
@@ -1006,7 +1007,7 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
         # If string, make list
         if isinstance( keyword, str ):
             keyword = [keyword]
-        keyword = filter( lambda s: isinstance(s,str), keyword )
+        keyword = [s for s in keyword if isinstance(s,str)]
 
         # Determine whether to use AND or OR based on type
         if isinstance( keyword, list ):
@@ -1028,25 +1029,25 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
             # Treat different keys with AND
             for key in keyword:
                 test = lambda k: key in k.metadata_file_location.lower()
-                catalog = filter( test, catalog )
+                catalog = list(filter( test, catalog ))
         else:
             # Treat different keys with OR
             temp_catalogs = [ catalog for w in keyword ]
             new_catalog = []
             for j,key in enumerate(keyword):
                 test = lambda k: key in k.metadata_file_location.lower()
-                new_catalog += filter( test, temp_catalogs[j] )
+                new_catalog += list(filter( test, temp_catalogs[j] ))
             catalog = list(set(new_catalog))
 
     # Compare not keyword
     if notkeyword is not None:
         if isinstance( notkeyword, str ):
             notkeyword = [notkeyword]
-        notkeyword = filter( lambda s: isinstance(s,str), notkeyword )
+        notkeyword = [s for s in notkeyword if isinstance(s,str)]
         notkeyword = [ k.lower() for k in notkeyword ]
         for w in notkeyword:
             test = lambda k: not ( w in k.metadata_file_location.lower() )
-            catalog = filter( test, catalog )
+            catalog = list(filter( test, catalog ))
 
     # Validate the existance of the related config files and simulation directories
     # NOTE that this effectively requires two reconfigure instances and is surely suboptimal
@@ -1058,7 +1059,7 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
                 warning(msg)
             return ans
         if catalog is not None:
-            catalog = filter( isondisk , catalog )
+            catalog = list(filter( isondisk , catalog ))
 
     # Filter out physically degenerate simuations within a default tolerance
     output_descriptor = magenta(' possibly degenerate')
@@ -1086,14 +1087,14 @@ def scsearch( catalog = None,           # Manually input list of scentry objects
     #
     if verbose:
         if len(catalog)>0:
-            print '## Found %s%s simulations:' % ( bold(str(len(catalog))), output_descriptor )
+            print('## Found %s%s simulations:' % ( bold(str(len(catalog))), output_descriptor ))
             for k,entry in enumerate(catalog):
                 # tag this entry with its inferred simname
                 simname = entry.raw_metadata.source_dir[-1].split('/')[-1] if entry.raw_metadata.source_dir[-1][-1]!='/' else entry.raw_metadata.source_dir[-1].split('/')[-2]
-                print '[%04i][%s] %s: %s\t(%s)' % ( k+1, green(entry.config.config_file_location.split('/')[-1].split('.')[0]), cyan(entry.setname), entry.label, cyan(simname ) )
+                print('[%04i][%s] %s: %s\t(%s)' % ( k+1, green(entry.config.config_file_location.split('/')[-1].split('.')[0]), cyan(entry.setname), entry.label, cyan(simname ) ))
         else:
             warning('!! Found %s simulations.' % str(len(catalog)))
-        print ''
+        print('')
 
     #
     return catalog
@@ -1125,7 +1126,7 @@ def scunique( catalog = None, tol = 1e-3, verbose = False ):
             # Create a map of all simulations with matching initial parameters (independently of initial setaration)
 
             # 1. Filter out all matching objects. NOTE that this subset include the current object
-            subset = filter( lambda k: entry.compare2(k,atol=tol), catalog )
+            subset = [k for k in catalog if entry.compare2(k,atol=tol)]
 
             # 2. Find index locations of subset
             subdex = [ catalog.index(k) for k in subset ]
@@ -1137,25 +1138,25 @@ def scunique( catalog = None, tol = 1e-3, verbose = False ):
             for ind,k in enumerate(subset):
                 tested_map[ subdex[ind] ] = False
                 if k is subset[maxdex]:
-                    if verbose: print '>> Keeping: [%i] %s:%s' % (catalog.index(k),k.setname,k.label)
+                    if verbose: print('>> Keeping: [%i] %s:%s' % (catalog.index(k),k.setname,k.label))
                 else:
                     umap[ subdex[ind] ] = False
-                    if verbose: print '## Removing:[%i] %s:%s' % (catalog.index(k),k.setname,k.label)
+                    if verbose: print('## Removing:[%i] %s:%s' % (catalog.index(k),k.setname,k.label))
 
         else:
 
-            if verbose: print magenta('[%i] Skipping %s:%s. It has already been checked.' % (d,entry.setname,entry.label) )
+            if verbose: print(magenta('[%i] Skipping %s:%s. It has already been checked.' % (d,entry.setname,entry.label) ))
 
     # Create the unique catalog using umap
     unique_catalog = list( array(catalog)[ umap ] )
 
     # Let the people know.
     if verbose:
-        print green('Note that %i physically degenerate simulations were removed.' % (len(catalog)-len(unique_catalog)) )
-        print green( 'Now %i physically unique entries remain:' % len(unique_catalog) )
+        print(green('Note that %i physically degenerate simulations were removed.' % (len(catalog)-len(unique_catalog)) ))
+        print(green( 'Now %i physically unique entries remain:' % len(unique_catalog) ))
         for k,entry in enumerate(unique_catalog):
-            print green( '>> [%i] %s: %s' % ( k+1, entry.setname, entry.label ) )
-        print ''
+            print(green( '>> [%i] %s: %s' % ( k+1, entry.setname, entry.label ) ))
+        print('')
 
     # return the unique subset of runs
     return unique_catalog
@@ -1575,7 +1576,7 @@ class gwf:
 
         # Copy attrributed from friend. If init, then do not check if attribute already exists in this.
         for attr in traits:
-            if verbose: print '\t that.%s --> this.%s (%s)' % (attr,attr,type(friend.__dict__[attr]).__name__)
+            if verbose: print('\t that.%s --> this.%s (%s)' % (attr,attr,type(friend.__dict__[attr]).__name__))
             setattr( this, attr, friend.__dict__[attr] )
 
         #
@@ -1629,8 +1630,8 @@ class gwf:
         proceed = False
         if NONUNIFORMT and (not INPUTDTNOTGIVENDT):
             msg = '(**) Waveform not uniform in time-step. Interpolation will be applied.'
-            if this.verbose: print magenta(msg)
-            print 'maxdt = '+str(diff(t).max())
+            if this.verbose: print(magenta(msg))
+            print('maxdt = '+str(diff(t).max()))
             # proceed = True
         if (NONUNIFORMT and INPUTDTNOTGIVENDT) or proceed:
             # if dt is not defined and not none, assume smallest dt
@@ -1638,7 +1639,7 @@ class gwf:
                 this.dt = diff(lim(t))/len(t)
                 msg = '(**) Warning: No dt given to gwf(). We will assume that the input waveform array is in geometric units, and that dt = %g will more than suffice.' % this.dt
                 if this.verbose:
-                    print magenta(msg)
+                    print(magenta(msg))
             # Interpolate waveform array
             intrp_t = arange( min(t), max(t), this.dt )
             intrp_R = InterpolatedUnivariateSpline( t, this.wfarr[:,1] )( intrp_t )
@@ -2396,7 +2397,7 @@ class gwylm:
         # TODO: Allow users to input path to h5 file in lvc-nr format
 
         # Confer the scentry_object's attributes to this object for ease of referencing
-        for attr in scentry_obj.__dict__.keys():
+        for attr in list(scentry_obj.__dict__.keys()):
             setattr( this, attr, scentry_obj.__dict__[attr] )
 
         # If the source dynamics function has been written for this simulation's handler, then store that function to the current object if it doesn not already exist. NOTE that after the waveform data has been loaded, the associated time values will be used to polulate the source time series field in the current object.
@@ -2574,7 +2575,7 @@ class gwylm:
         return this.lm[index]
     # Allow "in" to look for l,m content
     def __contains__(this,query):
-        print query
+        print(query)
         return query in this.__lmlist__
     # Allow class to be iterable as its __lmlist__
     def __iter__(this):
@@ -2990,7 +2991,7 @@ class gwylm:
                 # Determine whether to calc strain here. If so, then let the people know.
                 if len(this.hlm) == 0:
                     msg = '(**) You have requested that strain be plotted before having explicitelly called gwylm.calchlm(). I will now call calchlm() for you.'
-                    print magenta(msg)
+                    print(magenta(msg))
                     this.calchlm()
                 # Assign strain to the general placeholder.
                 wflm = this.hlm
@@ -3016,7 +3017,7 @@ class gwylm:
             #
             if show:
                 # Let the people know what is being plotted.
-                if verbose: print cyan('>>')+' Plotting '+darkcyan('%s'%kind)
+                if verbose: print(cyan('>>')+' Plotting '+darkcyan('%s'%kind))
                 shw()
 
         else: # Else, if both are desired
@@ -3128,7 +3129,7 @@ class gwylm:
         if kind is None: kind = 'psi4'
         # Validate kind of data to save
         if not ( kind in this.lm[2,2] ):
-            error('Unknown "kind" given: %s. Must be in %s.'%(kind,this.lm[2,2].keys()))
+            error('Unknown "kind" given: %s. Must be in %s.'%(kind,list(this.lm[2,2].keys())))
         # Handle default output dir
         if outdir is None: outdir = expanduser('~/Desktop/')
 
@@ -3358,7 +3359,7 @@ class gwylm:
                 verbose=False): # Let the people know
 
         # Make sure that the l=m=2 multipole exists
-        if not ( (2,2) in this.lm.keys() ):
+        if not ( (2,2) in list(this.lm.keys()) ):
             msg = 'There must be a l=m=2 multipole prewsent to estimate the waveform\'s ringdown part.'
             error(msg,'gwylm.ringdown')
 
@@ -3429,7 +3430,7 @@ class gwylm:
         from scipy.interpolate import InterpolatedUnivariateSpline as spline
 
         # Make sure that the l=m=2 multipole exists
-        if not ( (2,2) in this.lm.keys() ):
+        if not ( (2,2) in list(this.lm.keys()) ):
             msg = 'There must be a l=m=2 multipole prewsent to estimate the waveform\'s ringdown part.'
             error(msg,'gwylm.ringdown')
 
@@ -3985,11 +3986,11 @@ class gwylm:
         # Maximize
         if v == 1:
             dphi,dpsi = betamax(u,plt=plot,opt=True,n=n, verbose=verbose)
-            print dphi,dpsi
+            print(dphi,dpsi)
         else:
-            print '** Using test version betamax2'
+            print('** Using test version betamax2')
             dphi,dpsi = betamax2(u,plt=plot,opt=True,n=n, verbose=verbose)
-            print dphi,dpsi
+            print(dphi,dpsi)
         # Rotate self
         ans = this.rotate( dphi=dphi, dpsi=dpsi, verbose=verbose, apply=apply )
 
@@ -4231,10 +4232,10 @@ class gwylm:
         # If the simulation is already extrapolated, then do nothing
         if this.__isextrapolated__:
             # Do nothing
-            print
+            print()
         else: # Else, extrapolate
             # Use radius only scaling
-            print
+            print()
 
         return None
 
@@ -4420,7 +4421,7 @@ class gwylm:
                             that.old_remnant[key][k,:] = R( this.remnant[key][k,:], 0 )
                     else:
                         warning('cannot rotate radiated quantities, length mismatch: len alpha is %i, but times are %i'%(len(alpha),len(this.remnant['time_used'])))
-                        print alpha
+                        print(alpha)
 
         for key in this.radiated:
             if isinstance(this.radiated[key],ndarray):
@@ -4441,7 +4442,7 @@ class gwylm:
                             that.old_radiated[key] = R( this.radiated[key], 0 )
                     else:
                         warning('cannot rotate radiated quantities, length mismatch: len alpha is %i, but times are %i'%(len(alpha),len(this.radiated['time_used'])))
-                        print alpha
+                        print(alpha)
 
         #
         alert('Note that metadata at the scentry level (i.e. this.__scentry__) have not been rotated, but this.Sf, this.R1 and others have been rotated. This includes radiated and remnant quantities.')
@@ -4494,7 +4495,7 @@ class gwylm:
             # guess_Mf = Mf14067295( this.m1,this.m2,chi1,chi2 )
             guess_Mf,guess_xf = remnant(this.m1,this.m2,this.X1[-1],this.X2[-1])
             guess = (guess_Mf,guess_xf)
-            print guess
+            print(guess)
 
         # perform the minization
         Q = minimize( action,guess, bounds=[(1-0.999,1),(-0.999,0.999)] )
@@ -4946,7 +4947,7 @@ class gwfcharend:
     # Characterize the end of the waveform using values of the amplitude
     def __characterize_amplitude__(this,ylm):
         # Import useful things
-        from numpy import log
+        from numpy import log, floor
         # ROM (Ruduce order model) the post-peak as two lines
         amp = ylm.amp[ ylm.k_amp_max: ]
         t = ylm.t[ ylm.k_amp_max: ]
@@ -4969,7 +4970,7 @@ class gwfcharend:
             warning(msg,'gwfcharend')
         # Define the start and end of the region to be windowed
         this.left_index = ylm.k_amp_max + knots[-1]
-        this.right_index = ylm.k_amp_max + knots[-1]+(len(tt)-knots[-1])*6/10
+        this.right_index = ylm.k_amp_max + knots[-1]+int(floor((len(tt)-knots[-1])*6/10))
         # Calculate the window and store to the current object
         this.window_state = [ this.right_index, this.left_index ]
         this.window = maketaper( ylm.t, this.window_state )

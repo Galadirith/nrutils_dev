@@ -10,7 +10,7 @@
 
 
 # Import Libs
-import os,shutil,glob,urllib2,tarfile,sys,errno
+import os,shutil,glob,urllib.request,urllib.error,urllib.parse,tarfile,sys,errno
 import time,subprocess,re,inspect,pickle
 import numpy,string,random,h5py,copy
 
@@ -102,7 +102,7 @@ def h5tofiles( h5_path, save_dir, file_filter= lambda s: True, cleanup = False, 
             if this_dir[-1] is not '/': this_dir = this_dir + '/'
             mkdir( this_dir )
             #
-            for key in group.keys():
+            for key in list(group.keys()):
                 #
                 if type(group[key]) is h5py._hl.group.Group or \
                    type(group[key]) is h5py._hl.files.File:
@@ -118,7 +118,7 @@ def h5tofiles( h5_path, save_dir, file_filter= lambda s: True, cleanup = False, 
                         data = numpy.zeros( group[key].shape )
                         group[key].read_direct(data)
                         #
-                        print( '[%s]>> ' % thisfun + bold('Writing') + ': "%s"'% data_file_path)
+                        print(( '[%s]>> ' % thisfun + bold('Writing') + ': "%s"'% data_file_path))
                         numpy.savetxt( data_file_path, data, delimiter="  ", fmt="%20.8e")
                 else:
                     #
@@ -134,7 +134,7 @@ def h5tofiles( h5_path, save_dir, file_filter= lambda s: True, cleanup = False, 
         h5_file = h5py.File(h5_path,'r')
 
         # Begin pasing each key, and use group to recursively make folder trees
-        for key in h5_file.keys():
+        for key in list(h5_file.keys()):
 
             # reset output directory
             this_dir = save_dir
@@ -151,12 +151,12 @@ def h5tofiles( h5_path, save_dir, file_filter= lambda s: True, cleanup = False, 
 
             else: # Else, if it's a writable object
 
-                print('[%s]>> type(%s) = %s' % (thisfun,key,type(ref)) )
+                print(('[%s]>> type(%s) = %s' % (thisfun,key,type(ref)) ))
 
         # If the cleanup option is true, delete the original h5 file
         if cleanup:
             #
-            print('[%s]>> Removing the original h5 file at: "%s"' % (thisfun,h5_path) )
+            print(('[%s]>> Removing the original h5 file at: "%s"' % (thisfun,h5_path) ))
             os.remove(h5_path)
 
     else:
@@ -203,7 +203,7 @@ def replace_line(file_path, pattern, substitute, **kwargs):
     keys = ('verbose','verb')
     VERB = parsin( keys, kwargs )
     if VERB:
-        print('[%s]>> VERBOSE mode on.' % thisfun)
+        print(('[%s]>> VERBOSE mode on.' % thisfun))
 
     #
     if substitute[-1] is not '\n':
@@ -213,20 +213,20 @@ def replace_line(file_path, pattern, substitute, **kwargs):
     if os.path.isfile(file_path):
         #
         if VERB:
-            print( '[%s]>> Found "%s"' % (thisfun,file_path) )
+            print(( '[%s]>> Found "%s"' % (thisfun,file_path) ))
         # Create temp file
         fh, abs_path = mkstemp()
-        if VERB: print( '[%s]>> Temporary file created at "%s"' % (thisfun,abs_path) )
+        if VERB: print(( '[%s]>> Temporary file created at "%s"' % (thisfun,abs_path) ))
         new_file = open(abs_path,'w')
         old_file = open(file_path)
         for line in old_file:
             pattern_found = line.find(pattern) != -1
             if pattern_found:
                 if VERB:
-                    print( '[%s]>> Found pattern "%s" in line:\n\t"%s"' % (thisfun,pattern,line) )
+                    print(( '[%s]>> Found pattern "%s" in line:\n\t"%s"' % (thisfun,pattern,line) ))
                 new_file.write(substitute)
                 if VERB:
-                    print( '[%s]>> Line replaced with:\n\t"%s"' % (thisfun,substitute) )
+                    print(( '[%s]>> Line replaced with:\n\t"%s"' % (thisfun,substitute) ))
             else:
                 new_file.write(line)
         # Close temp file
@@ -238,26 +238,26 @@ def replace_line(file_path, pattern, substitute, **kwargs):
         # Move new file
         move(abs_path, file_path)
         # NOTE that the temporary file is automatically removed
-        if VERB: print( '[%s]>> Replacing original file with the temporary file.' % (thisfun) )
+        if VERB: print(( '[%s]>> Replacing original file with the temporary file.' % (thisfun) ))
     else:
         #
         if VERB:
-            print( '[%s]>> File not found at "%s"' % (thisfun,file_path) )
+            print(( '[%s]>> File not found at "%s"' % (thisfun,file_path) ))
         if VERB:
-            print( '[%s]>> Creating new file at "%s"' % (thisfun,file_path) )
+            print(( '[%s]>> Creating new file at "%s"' % (thisfun,file_path) ))
         #
         file = open( file_path, 'w' )
         if substitute[-1]!='\n':
             substitute = substitute + '\n'
         #
         if VERB:
-            print( '[%s]>> Writing "%s"' % (thisfun,substitute) )
+            print(( '[%s]>> Writing "%s"' % (thisfun,substitute) ))
         #
         file.write(substitute)
         file.close()
     #
     if VERB:
-        print('[%s] All done!',thisfun)
+        print(('[%s] All done!',thisfun))
 
 # Function that returns randome strings of desired length and component of the desired set of characters
 def rand_str(size=2**4, characters=string.ascii_uppercase + string.digits):
@@ -295,7 +295,7 @@ def parsin( keys, dict, default=False, verbose=False, fname='*', **kwarg ):
         if key in dict:
 
             if verbose:
-                print('[%s]>> Found "%s" or variant thereof.' % (fname,key) )
+                print(('[%s]>> Found "%s" or variant thereof.' % (fname,key) ))
 
             value = dict[key]
             break
@@ -315,7 +315,7 @@ def grep( flag, file_location, options='', comment='' ):
     if comment:
         # Masking in Python:
         mask = [line[0]!=comment for line in output]
-        output = [output[k] for k in xrange(len(output)) if mask[k]]
+        output = [output[k] for k in range(len(output)) if mask[k]]
 
     # Return the list of lines
     return output
@@ -338,7 +338,7 @@ def center_space(str):
     return ' '*int(a)
 def center_print(str):
     pad = center_space(str)
-    print pad + str
+    print(pad + str)
 
 # Print a short about statement to the prompt
 def print_hl(symbol="<>"):
@@ -350,7 +350,7 @@ def print_hl(symbol="<>"):
     if x:
         rows, columns = x.split()
         if columns:
-            print symbol*int(float(columns)/float(len(symbol)))
+            print(symbol*int(float(columns)/float(len(symbol))))
 
 # Function for untaring datafiles
 def untar(tar_file,savedir='',verbose=False,cleanup=False):
@@ -363,7 +363,7 @@ def untar(tar_file,savedir='',verbose=False,cleanup=False):
     tar.extractall(savedir)
     tar.close()
     if verbose:
-        print ">> untar: Found %i files in tarball." % len(internal_files)
+        print(">> untar: Found %i files in tarball." % len(internal_files))
     if cleanup:
         os.remove(tar_file)
 
@@ -377,7 +377,7 @@ def download( url, save_path='', save_name='', size_floor=[], verbose=False, ove
     # Create full path of file that will be downloaded using URL
     path,file_type = os.path.splitext(url)
     file_location = save_path + save_name
-    u = urllib2.urlopen(url)
+    u = urllib.request.urlopen(url)
 
     # Determine whether the download is desired
     DOWNLOAD = os.path.isfile(file_location) and overwrite
@@ -410,20 +410,20 @@ def download( url, save_path='', save_name='', size_floor=[], verbose=False, ove
                 status = r"   Download Progress:%1.2f MB downloaded at %1.2f Mb/sec     " % (mb_downloaded,(len(buffer)/(10.0**6.0))/dt)
             status = status + chr(8)*(len(status)+1)
             k += 1
-            if verbose: print status,
+            if verbose: print(status, end=' ')
         # Close file
         f.close()
         # Get the final time
         tf = time.time()
         # Show completion notice
-        if verbose: print "   Download of %1.4f MB completed in %1.4f sec" % ((file_size_dl/(10.0**6.0)),tf-t0)
-        if verbose: print "   Average download rate: %1.4f Mb/sec" % ((file_size_dl/(10.0**6.0))/(tf-t0))
-        if verbose: print('   Saving:"%s"' % file_location )
+        if verbose: print("   Download of %1.4f MB completed in %1.4f sec" % ((file_size_dl/(10.0**6.0)),tf-t0))
+        if verbose: print("   Average download rate: %1.4f Mb/sec" % ((file_size_dl/(10.0**6.0))/(tf-t0)))
+        if verbose: print(('   Saving:"%s"' % file_location ))
         # If the size of this file is below the floor, delete it.
         if size_floor:
             if file_size_dl<size_floor:
                 os.remove(file_location)
-                if verbose: print( '   *File is smaller than %i bytes and has been deleted.' % size_floor )
+                if verbose: print(( '   *File is smaller than %i bytes and has been deleted.' % size_floor ))
                 done = True
     else:
         #
@@ -459,9 +459,9 @@ class smart_object:
         thisfun = inspect.stack()[0][3]
 
         #
-        for attr in this.__dict__.keys():
+        for attr in list(this.__dict__.keys()):
             value = this.__dict__[attr]
-            print( '[%s]>> %s = %s' % (thisfun,attr,str(value)) )
+            print(( '[%s]>> %s = %s' % (thisfun,attr,str(value)) ))
 
     # Function for parsing entire files into class attributes and values
     def learn_file( this, file_location, eqls="=", **kwargs ):
@@ -487,7 +487,7 @@ class smart_object:
         keys = ('verbose','verb')
         VERB = parsin( keys, kwargs )
         if VERB:
-            print('[%s]>> VERBOSE mode on.' % thisfun)
+            print(('[%s]>> VERBOSE mode on.' % thisfun))
 
         # The string must be of the format "A eqls B", in which case the result is
         # that the field A is added to this object with the value B
@@ -498,7 +498,7 @@ class smart_object:
         attr = attr.replace(' ','')
         attr = attr.replace('#','')
         part[1] = part[1].replace(' ','')
-        if VERB: print( '   ** Trying to learn:\n \t\t[%s]=[%s]' % (attr,part[1]))
+        if VERB: print(( '   ** Trying to learn:\n \t\t[%s]=[%s]' % (attr,part[1])))
 
         # Correctly formatted lines will be parsed into exactly two parts
         if [2 == len(part)]:
@@ -510,10 +510,10 @@ class smart_object:
                     #
                     if  not isnumeric( val ):   # IF
                         is_number = False
-                        if VERB: print( '>> Learning character: %s' % val )
+                        if VERB: print(( '>> Learning character: %s' % val ))
                         value.append( val )
                     else:                       # Else
-                        if VERB: print( '>> Learning number: %s' % val)
+                        if VERB: print(( '>> Learning number: %s' % val))
                         if val:
                             value.append( eval(val) )
                 #
@@ -571,25 +571,25 @@ def sc_search(catalog_location,**kwargs):
     keys = ('verbose','verb')
     VERB = parsin( keys, kwargs )
     if VERB:
-        print('[%s]>> '% thisfun+bold('VERBOSE')+' mode on.' )
+        print(('[%s]>> '% thisfun+bold('VERBOSE')+' mode on.' ))
 
     # Relative path for settings file
     settings_file_path = os.path.dirname(os.path.realpath(__file__)) + '/'+thisfile+'.ini'
     if VERB:
-        print('>> Found Settings file at: '+settings_file_path)
+        print(('>> Found Settings file at: '+settings_file_path))
 
     # Look for Plotting option
     keys = ('plot','plt')
     PLOT = parsin( keys, kwargs )
     if parsin(keys,kwargs) and VERB:
-        print('[%s]>> Found "%s" key or variant thereof.' % ( thisfun, bold(keys[0]) ) )
+        print(('[%s]>> Found "%s" key or variant thereof.' % ( thisfun, bold(keys[0]) ) ))
 
     # Look for key to change settings file
     keys = ['.ini']
     new_defalt_file_path = parsin( keys, kwargs )
     if new_defalt_file_path:
         if VERB:
-            print('[%s]>> Found "%s" key or variant thereof.' % ( thisfun, bold(keys[0]) ) )
+            print(('[%s]>> Found "%s" key or variant thereof.' % ( thisfun, bold(keys[0]) ) ))
         pattern = 'DEFAULT_CATALOG_LOCATION='
         substitute = pattern + new_defalt_file_path
         replace_line(settings_file_path, pattern, substitute )
@@ -604,13 +604,13 @@ def sc_search(catalog_location,**kwargs):
     catalog_location = expanduser(catalog_location)
     if os.path.isfile( catalog_location ):
         catalog = pickle.load( open( catalog_location, "rb" ) )
-        if VERB: print( '[%s]>> Found default catalog in "%s"' % (thisfun,catalog_location) )
+        if VERB: print(( '[%s]>> Found default catalog in "%s"' % (thisfun,catalog_location) ))
     else:
         raise NameError('Cannot find catalog string in "%s"' % catalog_location)
     # Loading catalog file
     catalog = pickle.load( open( catalog_location, "rb" ) )
     if VERB:
-        print('[%s]>> Loading catalog file.' % thisfun)
+        print(('[%s]>> Loading catalog file.' % thisfun))
     # The DEFAULT output of this fucntion is the full catalog
     output = catalog
 
@@ -619,14 +619,14 @@ def sc_search(catalog_location,**kwargs):
     # ######################################################################### #
     keys = ('non-spinning','nonspinning','nospin','non_spinning')
     if parsin(keys,kwargs) and VERB:
-        print('[%s]>> Found "%s" key or variant thereof.' % ( thisfun, bold(keys[0]) ) )
+        print(('[%s]>> Found "%s" key or variant thereof.' % ( thisfun, bold(keys[0]) ) ))
     # If the key is found, apply the relevant filter:
     if parsin(keys,kwargs):
         # Define a function that is true IF the catalog entry is non-spinning
         key_test = lambda y : numpy.linalg.norm(numpy.array(y.initial_spin1)) \
          + numpy.linalg.norm(numpy.array(y.initial_spin1)) < 1e-6
         # Filter the catalog based upon this boolean test
-        output = filter( key_test, output )
+        output = list(filter( key_test, output ))
 
     # #
     # if VERB:
@@ -665,10 +665,10 @@ def get_metadata( sxs_dir, tmpdir, replace_old = True, **kwargs ):
     keys = ('verbose','verb')
     VERB = parsin( keys, kwargs )
     if VERB:
-        print('[%s]>> VERBOSE mode on.' % thisfun)
+        print(('[%s]>> VERBOSE mode on.' % thisfun))
 
     # Alert the user that matadata dl is starting
-    if VERB: print '>> '+bold('Starting the download of Meta Data.')
+    if VERB: print('>> '+bold('Starting the download of Meta Data.'))
 
     # Download each metadatafile
     k = 0
@@ -693,7 +693,7 @@ def get_metadata( sxs_dir, tmpdir, replace_old = True, **kwargs ):
         # Make a string for the meta data file name
         file_name = 'metadata.asc'
         # Update the user to what's happening
-        if VERB: print('>> Downloading:\t"%s"' % url )
+        if VERB: print(('>> Downloading:\t"%s"' % url ))
 
         # Download the metada file to meta_dir;
         # Note that "done" will be true when the last file downloaded is less than the
@@ -708,7 +708,7 @@ def get_metadata( sxs_dir, tmpdir, replace_old = True, **kwargs ):
         
         # Monitor the download stack
         if done: # Break out of the loop
-            if VERB: print(bold('>> Downloading of metadata files completed.'))
+            if VERB: print((bold('>> Downloading of metadata files completed.')))
             # Remove un-needed folder
             os.removedirs(sim_dir)
             break
@@ -722,13 +722,13 @@ def get_metadata( sxs_dir, tmpdir, replace_old = True, **kwargs ):
             # Have the scentry object "learn" the meta data file
             catalog[-1].learn_file( file_location )
             # Let the user know what has just happened
-            if VERB: print "   *Creating scentry object dynamically from meta data file."
+            if VERB: print("   *Creating scentry object dynamically from meta data file.")
 
     # --------------------------------------------------------------------------------- #
     # Store catalog to .p file for later usage
     # --------------------------------------------------------------------------------- #
     catalog_location = tmpdir + 'sxs_catalog.p'
-    if VERB: print '>> '+bold('Now storing catalog of metadata to:')+' "%s"' % catalog_location
+    if VERB: print('>> '+bold('Now storing catalog of metadata to:')+' "%s"' % catalog_location)
     pickle.dump( catalog, open( catalog_location, "wb" ) )
 
     # Return the catalog file location
@@ -768,10 +768,10 @@ wave_train = '~~~~<vvvvvvvvvvvvvWw>~~~~~~~'
 print_hl(wave_train)
 center_print('')
 program_title = 'SXSDLTOOL (BETA)'
-print( center_space(program_title) + bold(program_title) )
+print(( center_space(program_title) + bold(program_title) ))
 center_print('A Python tool for the automated downloading of publicly available graviational wave data from the SXS Collaboration.')
 author_info = 'Author: Koala Bear, Email: koalascript@gmail.com'
-print( center_space(author_info)+bold(author_info) )
+print(( center_space(author_info)+bold(author_info) ))
 center_print('About SXS: black-holes.org')
 center_print('')
 print_hl(wave_train)
@@ -780,7 +780,7 @@ time.sleep(1)
 
 # Print settings to screen
 print_hl()
-print( '>> '+bold('Settings file loaded:') )
+print(( '>> '+bold('Settings file loaded:') ))
 print_hl()
 settings.show()
 time.sleep(4)
@@ -836,7 +836,7 @@ mkdir(tmpdir)
 # --------------------------------------------------------------------------------- #
 
 # Alert the user that matadata dl is starting
-print '>> '+bold('Starting the download of Meta Data.')
+print('>> '+bold('Starting the download of Meta Data.'))
 
 catalog_path = get_metadata(sxs_dir,tmpdir,verbose=True,replace_old=settings.REPLACE_OLD)
 
@@ -908,13 +908,13 @@ for server_file in settings.WHAT_TO_DOWNLOAD:
 
             # Determine whether the download is desired
             file_location = run_dir+data_name
-            print('>> Querying "%s"' % file_location)
+            print(('>> Querying "%s"' % file_location))
             DOWNLOAD = os.path.isfile(file_location) and settings.REPLACE_OLD
             DOWNLOAD = DOWNLOAD or not os.path.isfile(file_location)
 
             if DOWNLOAD:
                 # Download the tar file
-                print('>> Downloading TAR-FILE for:\t"%s"' % url )
+                print(('>> Downloading TAR-FILE for:\t"%s"' % url ))
                 empty,tar_location = download(url,run_dir,save_name=file_name,\
                                             verbose=True, size_floor=min_bytes)
 
@@ -924,7 +924,7 @@ for server_file in settings.WHAT_TO_DOWNLOAD:
                 # untar(tar_location,cleanup=True)
             else:
                 # Let the user know that this download has been skipped
-                print('>> '+bold('Skipping download. ')+'Data file already exists.')
+                print(('>> '+bold('Skipping download. ')+'Data file already exists.'))
 
             # Extract desired information form h5 file, then remove everything else to preserve disk space
             h5_file_string = run_dir + data_name
@@ -939,7 +939,7 @@ for server_file in settings.WHAT_TO_DOWNLOAD:
         else:
 
             #
-            print(bold('>> Status found to be complete. Moving on.'))
+            print((bold('>> Status found to be complete. Moving on.')))
 
 
 # Remove temporary folder of metedata and catalog
